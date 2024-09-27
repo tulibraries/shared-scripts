@@ -8,6 +8,11 @@
 
 # Get Airflow version from Pipfile
 AIRFLOW_VERSION=$(pipenv run pip freeze | grep 'apache-airflow==' | cut -d'=' -f3)
+
+if [ "$AIRFLOW_VERSION" = "" ]; then
+  AIRFLOW_VERSION=$(grep 'apache-airflow\s*= "==' Pipfile | cut -d' ' -f 3 | sed 's/"==\(.*\)"$/\1/')
+fi
+
 echo "Airflow version: $AIRFLOW_VERSION"
 
 # Get Python version from .python-version (first two parts)
