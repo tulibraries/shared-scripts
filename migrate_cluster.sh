@@ -16,10 +16,10 @@ if [ $DEBUG = "true" ]; then
 fi
 
 : "${CLUSTER_NAME:=dev-library}"
-: "${FROM_CLUSTER_ID:=0}"
-: "${TO_CLUSTER_ID:=1}"
+: "${FROM_CLUSTER_ID:=1}"
+: "${TO_CLUSTER_ID:=0}"
 : "${NAMESPACE:=$1}"
-: "${EXCLUDE_RESOURCES:='certificaterequests.cert-manager.io,orders.acme.cert-manager.io,certificates.cert-manager.io,apps.catalog.cattle.io,configauditreports.aquasecurity.github.io,exposedsecretreports.aquasecurity.github.io,sbomreports.aquasecurity.github.io,vulnerabilityreports.aquasecurity.github.io'}"
+: "${EXCLUDE_RESOURCES:='certificaterequests.cert-manager.io,orders.acme.cert-manager.io,certificates.cert-manager.io,apps.catalog.cattle.io,configauditreports.aquasecurity.github.io,exposedsecretreports.aquasecurity.github.io,sbomreports.aquasecurity.github.io,vulnerabilityreports.aquasecurity.github.io,backup.postgresql.cnpg.io,cluster.postgresql.cnpg.io,scheduledbackup.postgresql.cnpg.io'}"
 # If BACKUP_NAME is not given, a new backup will be generated.
 : "${BACKUP_NAME:=}"
 
@@ -117,7 +117,7 @@ echo "Resetting the pod security levels back to original settings."
 kubectl label namespace $NAMESPACE  pod-security.kubernetes.io/enforce=$ORIG_PRIVILAGES --overwrite
 
 SCHEDULE_NAME=$NAMESPACE-$TO_CLUSTER_ID
-export GET_SCHEDULE=$(velero schedule get --output json | jq -r '.items[].metadata.name' | grep $SCHEDULE_NAME)
+export GET_SCHEDULE=$(velero schedule get --output json | jq -r '.items // [] | .[].metadata.name' | grep $SCHEDULE_NAME || true)
 
 if [ "$GET_SCHEDULE" = "" ]; then
   velero create schedule $SCHEDULE_NAME --schedule="0 0 * * *" \
